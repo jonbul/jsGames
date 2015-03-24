@@ -1,0 +1,143 @@
+<html>
+	<head>
+		<style>
+			.solid{
+				position:absolute; 
+				display:block;
+			}
+			#pantalla{
+				position:absolute; 
+				<!--border:solid green;-->
+				display:block;
+				background:blue;
+				z-index:0;
+			}
+			#player{
+				position:absolute;
+				<!--border: solid black;-->
+				display: block;
+				background:rgba(255,0,0,1);
+				z-index:1;
+			}
+			#caja{
+				background:black;
+			}
+			#suelo{
+				background:green;
+			}
+		</style>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+		<script src="./movimientos.js"></script>
+		<script type="text/javascript">
+			//Constantes
+			//teclas
+			var LEFTKEY=37,UPKEY=38,RIGHTKEY=39,DOWNKEY=40,SPACEKEY=32;
+			//velocidad
+			var VELPX = 2;
+			
+			//Globales
+			var keys = new Array();
+			var isJumping = false;
+			var isFalling = false;
+			var velCaida = 1;
+			var fuerzaSalto = 10;
+			
+			//INIT
+			$(document).ready(function(){
+				var pant = $("#pantalla");
+				var player = $("#player");
+				var suelo = $("#suelo");
+				var caja = $("#caja");
+				
+				pant.width(screen.width*(0.95));// + "px");
+				pant.height(screen.height*(0.95));// + "px");
+						
+				/*pant.css({"top": ((screen.height - pant.height())/2),// + "px",
+							"left": ((screen.width - pant.width())/2) + "px"
+						});*/
+				pant.offset({top:(screen.height - pant.height())/2,
+							left:(screen.width - pant.width())/2});
+				/*pantPos.top = (screen.height - pant.height())/2;
+				pantPos.left = (screen.width - pant.width())/2;*/
+				
+				var pantPos = pant.position();
+				
+				suelo.height((pant.height()*(0.1)));
+				suelo.width(pant.width());
+				suelo.offset({	"left":pantPos.left,
+								"top":pantPos.top+pant.height()-$("#suelo").height()});
+				caja.width(pant.width()/4);
+				caja.height(pant.height()/4);
+				caja.offset({	"left":(pantPos.left + pant.width())/2,
+								"top":pantPos.top+pant.height()-$("#suelo").height()-$("#caja").height()});
+				
+				player.width(screen.width/(38.4));//+"px";
+				player.height(player.width());//+"px"});
+				
+				player.offset({top: pant.height()+pantPos.top-player.height()-suelo.height(),
+								left: pantPos.left});
+				player.css({"background-image": "url('./player/stop-r.png')",
+							"background-repeat" : "no-repeat"});
+				
+				setTimeout("ciclo()",1);
+			});
+			$(document).keydown(function(){
+				keys[event.which] = true;
+				var pl = $("#player");
+				
+				var cols = buscaColisiones(null,10,pl,".solid");
+				if (event.which == SPACEKEY && cols.colS == true/*isJumping == false && isFalling == false /*&& isFullScreen()*/){
+					var topTo = pl.position().top - (pl.height()*7) ,
+						topFrom = pl.position().top;
+					isJumping = true;
+					pl.animate({"top":topTo},"",function(){isJumping = false;isFalling = true;});
+				}
+				
+				
+			});
+			$(document).keyup(function(){
+				keys[event.which] = false;
+			});
+			//$(document).keypress(function(){$("#pulsada").html = event.which;});
+		</script>
+		<script>
+			/*function quitaIzq(texto, n){
+			//Se le quita a texto n caracteres por la Izq
+				return texto.substr(0,texto.length - n);
+			}*/
+			
+			
+			function ciclo(){
+				var pl = $("#player");
+				//Movimiento Horizontal
+				mover(pl,VELPX,".solid");
+				//Se comprueba si está en el aire, si lo está cae
+				//var grav = velCaida / (9,8);
+				var cols = buscaColisiones(null,(velCaida/(9,8)),pl,".solid");
+				if (cols.colS == false){
+					pl.css("top",pl.position().top + velCaida/9,8);
+					velCaida++
+				}else{
+					velCaida = velCaida-2;
+				}
+				setTimeout("ciclo()",1);
+			}
+			function isFullScreen(){
+				if(screen.width == window.outerWidth &&
+					screen.height == window.outerHeight){
+					return true;
+				}else{
+					return false;
+				}
+			}
+		</script>
+	</head>
+	<body>
+		<!--input type="text" id="pulsada"/-->
+		<div id="pantalla">
+			<canvas id="player"></canvas>
+			<div id="caja"	class= "solid"></div>
+			<div id="suelo" class="solid"></div>
+		</div>
+	</body>
+</html>
